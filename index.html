@@ -3,69 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PES Statistics</title>
+    <title>BALLON D'OR - Статистика PES</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--tg-theme-bg-color, #181818);
-            color: var(--tg-theme-text-color, #ffffff);
-            padding: 10px;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            padding: 8px;
             margin: 0;
-            font-size: 14px;
+            font-size: 13px;
         }
-        h2 { text-align: center; }
+        h2 { text-align: center; color: #fff; margin-bottom: 10px; font-size: 16px; }
         .card {
-            background: var(--tg-theme-secondary-bg-color, #242424);
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow-x: auto;
         }
+        .card h3 {
+            margin: 0 0 8px 0;
+            text-align: center;
+            font-size: 14px;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        .natan-title { background: #1f6feb33; color: #58a6ff; }
+        .arsen-title { background: #da363333; color: #f85149; }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
+            white-space: nowrap;
         }
         th, td {
-            padding: 6px 4px;
+            padding: 4px 2px;
             text-align: center;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid #21262d;
+            font-size: 12px;
         }
-        th { font-size: 12px; color: #aaa; }
-        input {
-            width: 35px;
-            padding: 4px;
+        th { color: #8b949e; font-size: 11px; }
+        input[type="number"] {
+            width: 32px;
+            padding: 3px;
             border-radius: 4px;
-            border: 1px solid #555;
-            background: #333;
+            border: 1px solid #30363d;
+            background: #0d1117;
             color: #fff;
             text-align: center;
+            font-size: 12px;
+        }
+        .player-name {
+            text-align: left;
+            padding-left: 4px;
+            font-weight: 500;
+            color: #e6edf3;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .add-form {
             display: flex;
-            gap: 5px;
-            margin-top: 10px;
+            gap: 4px;
+            margin-top: 8px;
         }
         .add-form input {
-            flex: 1;
-            width: auto;
-            padding: 6px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #30363d;
+            background: #0d1117;
+            color: #fff;
+            font-size: 12px;
         }
         .add-btn {
-            background: #2ea6ff;
+            background: #238636;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 5px 8px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 12px;
+            flex: 1;
         }
+        #loading { text-align: center; padding: 20px; font-size: 15px; color: #8b949e; }
     </style>
 </head>
 <body>
 
-    <h2>⚽ Статистика PES Ronchesse</h2>
-    <div id="app">Завантаження даних...</div>
+    <h2>⚽ BALLON D'OR — СТАТИСТИКА</h2>
+    <div id="loading">Завантаження даних...</div>
+    <div id="app"></div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwLupAPTTe8z8Tb1Kv0cBmeQMA2cY5jAse8y0I6idXEel0rFcbX8BLf30WbnO8NFydx/exec";
@@ -74,62 +104,82 @@
             fetch(WEB_APP_URL)
                 .then(res => res.json())
                 .then(rows => {
-                    // Оскільки Google Таблиця повертає масив масивів рядків
-                    let html = `<div class="card"><h3>Команда НАТАН</h3><table><tr><th>Нр</th><th>Ім'я</th><th>Гол</th><th>Пас</th></tr>`;
+                    document.getElementById("loading").style.display = "none";
                     
-                    // Перебираємо рядки таблиці (пропускаємо заголовок, беремо з 3 по 15 рядок)
+                    // --- КОМАНДА НАТАН (Ліва таблиця: рядки з 3 по 25, колонки 0-5) ---
+                    let natanHtml = `<div class="card">
+                        <h3 class="natan-title">КОМАНДА НАТАН</h3>
+                        <table>
+                            <tr><th>№</th><th style="text-align:left;">Гравець</th><th>ГОЛ</th><th>ПАС</th><th>Г+П</th><th>МАТЧІ</th></tr>`;
+                    
                     for (let i = 3; i < rows.length; i++) {
                         let r = rows[i];
-                        if (r && r[1]) { // Якщо є ім'я у другій колонці (індекс 1)
+                        if (r && r[1] && r[1].toString().trim() !== "") {
                             let num = r[0] !== undefined ? r[0] : '';
                             let name = r[1];
-                            let goals = r[2] !== undefined ? r[2] : 0;
-                            let passes = r[3] !== undefined ? r[3] : 0;
-                            html += `<tr>
+                            let goals = r[2] !== undefined && r[2] !== "" ? r[2] : 0;
+                            let passes = r[3] !== undefined && r[3] !== "" ? r[3] : 0;
+                            let gp = r[4] !== undefined && r[4] !== "" ? r[4] : (Number(goals) + Number(passes));
+                            let matches = r[5] !== undefined && r[5] !== "" ? r[5] : 6;
+
+                            natanHtml += `<tr>
                                 <td>${num}</td>
-                                <td><b>${name}</b></td>
+                                <td class="player-name">${name}</td>
                                 <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 3, this.value)"></td>
                                 <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 4, this.value)"></td>
+                                <td><b>${gp}</b></td>
+                                <td><input type="number" value="${matches}" onchange="updateCell(${i+1}, 6, this.value)"></td>
                             </tr>`;
                         }
                     }
-                    html += `</table>
+                    natanHtml += `</table>
                         <div class="add-form">
-                            <input type="number" id="num_natan" placeholder="Нр" style="max-width: 40px;">
-                            <input type="text" id="name_natan" placeholder="Новий гравець (Натан)">
+                            <input type="number" id="num_natan" placeholder="№" style="width: 35px;">
+                            <input type="text" id="name_natan" placeholder="Ім'я гравця" style="flex: 2;">
                             <button class="add-btn" onclick="addPlayer('natan')">+ Додати</button>
                         </div>
                     </div>`;
 
-                    html += `<div class="card"><h3>Команда АРСЕН</h3><table><tr><th>Нр</th><th>Ім'я</th><th>Гол</th><th>Пас</th></tr>`;
+                    // --- КОМАНДА АРСЕН (Права таблиця: рядки з 3 по 25, колонки 6-11) ---
+                    let arsenHtml = `<div class="card">
+                        <h3 class="arsen-title">КОМАНДА АРСЕН</h3>
+                        <table>
+                            <tr><th>№</th><th>К</th><th style="text-align:left;">Гравець</th><th>ГОЛ</th><th>ПАС</th><th>Г+П</th><th>МАТЧІ</th></tr>`;
                     
                     for (let i = 3; i < rows.length; i++) {
                         let r = rows[i];
-                        if (r && r[7]) { // Якщо є ім'я у колонці Арсена (індекс 7)
+                        if (r && r[7] && r[7].toString().trim() !== "") {
                             let num = r[6] !== undefined ? r[6] : '';
-                            let name = r[7];
-                            let goals = r[8] !== undefined ? r[8] : 0;
-                            let passes = r[9] !== undefined ? r[9] : 0;
-                            html += `<tr>
+                            let k = r[7] !== undefined ? r[7] : ''; // Додаткова колонка К якщо є
+                            let name = r[8];
+                            let goals = r[9] !== undefined && r[9] !== "" ? r[9] : 0;
+                            let passes = r[10] !== undefined && r[10] !== "" ? r[10] : 0;
+                            let gp = r[11] !== undefined && r[11] !== "" ? r[11] : (Number(goals) + Number(passes));
+                            let matches = r[12] !== undefined && r[12] !== "" ? r[12] : 6;
+
+                            arsenHtml += `<tr>
                                 <td>${num}</td>
-                                <td><b>${name}</b></td>
-                                <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 9, this.value)"></td>
-                                <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 10, this.value)"></td>
+                                <td>${k}</td>
+                                <td class="player-name">${name}</td>
+                                <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 10, this.value)"></td>
+                                <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 11, this.value)"></td>
+                                <td><b>${gp}</b></td>
+                                <td><input type="number" value="${matches}" onchange="updateCell(${i+1}, 13, this.value)"></td>
                             </tr>`;
                         }
                     }
-                    html += `</table>
+                    arsenHtml += `</table>
                         <div class="add-form">
-                            <input type="number" id="num_arsen" placeholder="Нр" style="max-width: 40px;">
-                            <input type="text" id="name_arsen" placeholder="Новий гравець (Арсен)">
+                            <input type="number" id="num_arsen" placeholder="№" style="width: 35px;">
+                            <input type="text" id="name_arsen" placeholder="Ім'я гравця" style="flex: 2;">
                             <button class="add-btn" onclick="addPlayer('arsen')">+ Додати</button>
                         </div>
                     </div>`;
-                    
-                    document.getElementById("app").innerHTML = html;
+
+                    document.getElementById("app").innerHTML = natanHtml + arsenHtml;
                 })
                 .catch(err => {
-                    document.getElementById("app").innerHTML = "Помилка завантаження даних.";
+                    document.getElementById("loading").innerText = "Помилка завантаження даних із таблиці.";
                 });
         }
 
@@ -140,7 +190,9 @@
             })
             .then(res => res.json())
             .then(() => {
-                Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                if (window.Telegram && Telegram.WebApp && Telegram.WebApp.HapticFeedback) {
+                    Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                }
             });
         }
 
@@ -161,14 +213,19 @@
             })
             .then(res => res.json())
             .then(() => {
-                Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                if (window.Telegram && Telegram.WebApp && Telegram.WebApp.HapticFeedback) {
+                    Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                }
                 nameInput.value = "";
                 numInput.value = "";
-                setTimeout(loadData, 1000); // Перезавантажуємо список через секунду
+                setTimeout(loadData, 800);
             });
         }
 
-        Telegram.WebApp.ready();
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+        }
         loadData();
     </script>
 </body>
