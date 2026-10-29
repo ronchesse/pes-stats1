@@ -104,9 +104,9 @@
                 .then(rows => {
                     document.getElementById("loading").style.display = "none";
                     
-                    // --- НАТАН ---
+                    // --- НАТАН (рядки з 5 по 25, індекси 4-24) ---
                     let natanRows = "";
-                    for (let i = 4; i < rows.length; i++) { // починаємо з 5 рядка (індекс 4)
+                    for (let i = 4; i < rows.length; i++) {
                         let r = rows[i];
                         if (!r) continue;
                         
@@ -118,10 +118,6 @@
                             let gp = r[4] !== undefined && r[4] !== "" ? r[4] : (Number(goals) + Number(passes));
                             let matches = r[5] !== undefined && r[5] !== "" ? r[5] : 6;
 
-                            // Номер рядка в таблиці Excel = i + 1
-                            // Колонка C (Голи) = 3
-                            // Колонка D (Паси) = 4
-                            // Колонка F (Матчі) = 6
                             natanRows += `<tr>
                                 <td>${num}</td>
                                 <td class="player-name">${name}</td>
@@ -133,33 +129,27 @@
                         }
                     }
 
-                    // --- АРСЕН ---
+                    // --- АРСЕН (рядки з 5 по 27, індекси 4-26) ---
                     let arsenRows = "";
-                    for (let i = 4; i < rows.length; i++) { // починаємо з 5 рядка (індекс 4)
+                    for (let i = 4; i < rows.length; i++) {
                         let r = rows[i];
                         if (!r) continue;
 
-                        let name = r[9] !== undefined ? String(r[9]).trim() : "";
+                        let name = r[8] !== undefined ? String(r[8]).trim() : "";
                         if (name !== "" && name !== "ГРАВЕЦЬ") {
                             let num = r[7] !== undefined ? r[7] : '';
-                            let k = r[8] !== undefined ? r[8] : '';
-                            let goals = r[10] !== undefined && r[10] !== "" ? r[10] : 0;
-                            let passes = r[11] !== undefined && r[11] !== "" ? r[11] : 0;
-                            let gp = r[12] !== undefined && r[12] !== "" ? r[12] : (Number(goals) + Number(passes));
-                            let matches = r[13] !== undefined && r[13] !== "" ? r[13] : 6;
+                            let goals = r[9] !== undefined && r[9] !== "" ? r[9] : 0;
+                            let passes = r[10] !== undefined && r[10] !== "" ? r[10] : 0;
+                            let gp = r[11] !== undefined && r[11] !== "" ? r[11] : (Number(goals) + Number(passes));
+                            let matches = r[12] !== undefined && r[12] !== "" ? r[12] : 6;
 
-                            // Номер рядка в таблиці Excel = i + 1
-                            // Колонка K (Голи) = 11
-                            // Колонка L (Паси) = 12
-                            // Колонка N (Матчі) = 14
                             arsenRows += `<tr>
                                 <td>${num}</td>
-                                <td>${k}</td>
                                 <td class="player-name">${name}</td>
-                                <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 11, this.value)"></td>
-                                <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 12, this.value)"></td>
+                                <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 10, this.value)"></td>
+                                <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 11, this.value)"></td>
                                 <td><b>${gp}</b></td>
-                                <td><input type="number" value="${matches}" onchange="updateCell(${i+1}, 14, this.value)"></td>
+                                <td><input type="number" value="${matches}" onchange="updateCell(${i+1}, 13, this.value)"></td>
                             </tr>`;
                         }
                     }
@@ -181,7 +171,7 @@
                     <div class="card">
                         <h3 class="arsen-title">КОМАНДА АРСЕН</h3>
                         <table>
-                            <tr><th>№</th><th>К</th><th style="text-align:left;">Гравець</th><th>ГОЛ</th><th>ПАС</th><th>Г+П</th><th>МАТЧІ</th></tr>
+                            <tr><th>№</th><th style="text-align:left;">Гравець</th><th>ГОЛ</th><th>ПАС</th><th>Г+П</th><th>МАТЧІ</th></tr>
                             ${arsenRows}
                         </table>
                         <div class="add-form">
