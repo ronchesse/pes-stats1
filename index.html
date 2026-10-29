@@ -74,14 +74,17 @@
             fetch(WEB_APP_URL)
                 .then(res => res.json())
                 .then(rows => {
+                    // Оскільки Google Таблиця повертає масив масивів рядків
                     let html = `<div class="card"><h3>Команда НАТАН</h3><table><tr><th>Нр</th><th>Ім'я</th><th>Гол</th><th>Пас</th></tr>`;
                     
-                    for (let i = 3; i <= 25; i++) {
-                        if (rows[i] && rows[i][1]) {
-                            let num = rows[i][0] !== undefined ? rows[i][0] : '';
-                            let name = rows[i][1];
-                            let goals = rows[i][2] !== undefined ? rows[i][2] : '';
-                            let passes = rows[i][3] !== undefined ? rows[i][3] : '';
+                    // Перебираємо рядки таблиці (пропускаємо заголовок, беремо з 3 по 15 рядок)
+                    for (let i = 3; i < rows.length; i++) {
+                        let r = rows[i];
+                        if (r && r[1]) { // Якщо є ім'я у другій колонці (індекс 1)
+                            let num = r[0] !== undefined ? r[0] : '';
+                            let name = r[1];
+                            let goals = r[2] !== undefined ? r[2] : 0;
+                            let passes = r[3] !== undefined ? r[3] : 0;
                             html += `<tr>
                                 <td>${num}</td>
                                 <td><b>${name}</b></td>
@@ -93,19 +96,20 @@
                     html += `</table>
                         <div class="add-form">
                             <input type="number" id="num_natan" placeholder="Нр" style="max-width: 40px;">
-                            <input type="text" id="name_natan" placeholder="Ім'я нового гравця">
+                            <input type="text" id="name_natan" placeholder="Новий гравець (Натан)">
                             <button class="add-btn" onclick="addPlayer('natan')">+ Додати</button>
                         </div>
                     </div>`;
 
                     html += `<div class="card"><h3>Команда АРСЕН</h3><table><tr><th>Нр</th><th>Ім'я</th><th>Гол</th><th>Пас</th></tr>`;
                     
-                    for (let i = 3; i <= 25; i++) {
-                        if (rows[i] && rows[i][7]) {
-                            let num = rows[i][6] !== undefined ? rows[i][6] : '';
-                            let name = rows[i][7];
-                            let goals = rows[i][8] !== undefined ? rows[i][8] : '';
-                            let passes = rows[i][9] !== undefined ? rows[i][9] : '';
+                    for (let i = 3; i < rows.length; i++) {
+                        let r = rows[i];
+                        if (r && r[7]) { // Якщо є ім'я у колонці Арсена (індекс 7)
+                            let num = r[6] !== undefined ? r[6] : '';
+                            let name = r[7];
+                            let goals = r[8] !== undefined ? r[8] : 0;
+                            let passes = r[9] !== undefined ? r[9] : 0;
                             html += `<tr>
                                 <td>${num}</td>
                                 <td><b>${name}</b></td>
@@ -117,12 +121,15 @@
                     html += `</table>
                         <div class="add-form">
                             <input type="number" id="num_arsen" placeholder="Нр" style="max-width: 40px;">
-                            <input type="text" id="name_arsen" placeholder="Ім'я нового гравця">
+                            <input type="text" id="name_arsen" placeholder="Новий гравець (Арсен)">
                             <button class="add-btn" onclick="addPlayer('arsen')">+ Додати</button>
                         </div>
                     </div>`;
                     
                     document.getElementById("app").innerHTML = html;
+                })
+                .catch(err => {
+                    document.getElementById("app").innerHTML = "Помилка завантаження даних.";
                 });
         }
 
@@ -157,7 +164,7 @@
                 Telegram.WebApp.HapticFeedback.notificationOccurred('success');
                 nameInput.value = "";
                 numInput.value = "";
-                loadData();
+                setTimeout(loadData, 1000); // Перезавантажуємо список через секунду
             });
         }
 
