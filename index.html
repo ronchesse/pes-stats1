@@ -7,100 +7,162 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--tg-theme-bg-color, #181818);
             color: var(--tg-theme-text-color, #ffffff);
-            padding: 15px;
+            padding: 10px;
             margin: 0;
+            font-size: 14px;
         }
+        h2 { text-align: center; }
         .card {
             background: var(--tg-theme-secondary-bg-color, #242424);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-        }
-        .row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 10px;
+            border-radius: 10px;
             margin-bottom: 10px;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        th, td {
+            padding: 6px 4px;
+            text-align: center;
+            border-bottom: 1px solid #444;
+        }
+        th { font-size: 12px; color: #aaa; }
         input {
-            width: 80px;
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #444;
+            width: 35px;
+            padding: 4px;
+            border-radius: 4px;
+            border: 1px solid #555;
             background: #333;
             color: #fff;
             text-align: center;
-            font-size: 16px;
         }
-        button {
-            width: 100%;
-            padding: 12px;
+        .add-form {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .add-form input {
+            flex: 1;
+            width: auto;
+            padding: 6px;
+        }
+        .add-btn {
             background: #2ea6ff;
             color: white;
             border: none;
-            border-radius: 8px;
+            padding: 6px 12px;
+            border-radius: 4px;
             font-weight: bold;
-            font-size: 16px;
             cursor: pointer;
-            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-    <h2>📊 Статистика PES</h2>
-    
-    <div id="stats-container" class="card">
-        <p>Завантаження даних...</p>
-    </div>
+    <h2>⚽ Статистика PES Ronchesse</h2>
+    <div id="app">Завантаження даних...</div>
 
-    <button onclick="saveStats()">💾 Зберегти зміни</button>
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwLupAPTTe8z8Tb1Kv0cBmeQMA2cY5jAse8y0I6idXEel0rFcbX8BLf30WbnO8NFydx/exec";
 
-<script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwLupAPTTe8z8Tb1Kv0cBmeQMA2cY5jAse8y0I6idXEel0rFcbX8BLf30WbnO8NFydx/exec";
-
-    function loadStats() {
-        fetch(WEB_APP_URL)
-            .then(res => res.json())
-            .then(data => {
-                let html = "";
-                for (let key in data) {
-                    html += `
-                        <div class="row">
-                            <span><b>${key}</b></span>
-                            <input type="text" id="stat_${key}" value="${data[key]}">
+        function loadData() {
+            fetch(WEB_APP_URL)
+                .then(res => res.json())
+                .then(rows => {
+                    let html = `<div class="card"><h3>Команда НАТАН</h3><table><tr><th>Нр</th><th>Ім'я</th><th>Гол</th><th>Пас</th></tr>`;
+                    
+                    for (let i = 3; i <= 25; i++) {
+                        if (rows[i] && rows[i][1]) {
+                            let num = rows[i][0] !== undefined ? rows[i][0] : '';
+                            let name = rows[i][1];
+                            let goals = rows[i][2] !== undefined ? rows[i][2] : '';
+                            let passes = rows[i][3] !== undefined ? rows[i][3] : '';
+                            html += `<tr>
+                                <td>${num}</td>
+                                <td><b>${name}</b></td>
+                                <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 3, this.value)"></td>
+                                <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 4, this.value)"></td>
+                            </tr>`;
+                        }
+                    }
+                    html += `</table>
+                        <div class="add-form">
+                            <input type="number" id="num_natan" placeholder="Нр" style="max-width: 40px;">
+                            <input type="text" id="name_natan" placeholder="Ім'я нового гравця">
+                            <button class="add-btn" onclick="addPlayer('natan')">+ Додати</button>
                         </div>
-                    `;
-                }
-                document.getElementById("stats-container").innerHTML = html;
+                    </div>`;
+
+                    html += `<div class="card"><h3>Команда АРСЕН</h3><table><tr><th>Нр</th><th>Ім'я</th><th>Гол</th><th>Пас</th></tr>`;
+                    
+                    for (let i = 3; i <= 25; i++) {
+                        if (rows[i] && rows[i][7]) {
+                            let num = rows[i][6] !== undefined ? rows[i][6] : '';
+                            let name = rows[i][7];
+                            let goals = rows[i][8] !== undefined ? rows[i][8] : '';
+                            let passes = rows[i][9] !== undefined ? rows[i][9] : '';
+                            html += `<tr>
+                                <td>${num}</td>
+                                <td><b>${name}</b></td>
+                                <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 9, this.value)"></td>
+                                <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 10, this.value)"></td>
+                            </tr>`;
+                        }
+                    }
+                    html += `</table>
+                        <div class="add-form">
+                            <input type="number" id="num_arsen" placeholder="Нр" style="max-width: 40px;">
+                            <input type="text" id="name_arsen" placeholder="Ім'я нового гравця">
+                            <button class="add-btn" onclick="addPlayer('arsen')">+ Додати</button>
+                        </div>
+                    </div>`;
+                    
+                    document.getElementById("app").innerHTML = html;
+                });
+        }
+
+        function updateCell(row, col, value) {
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({ row: row, col: col, value: value })
+            })
+            .then(res => res.json())
+            .then(() => {
+                Telegram.WebApp.HapticFeedback.notificationOccurred('success');
             });
-    }
+        }
 
-    function saveStats() {
-        let inputs = document.querySelectorAll("input[id^='stat_']");
-        let payload = {};
+        function addPlayer(team) {
+            let nameInput = document.getElementById(`name_${team}`);
+            let numInput = document.getElementById(`num_${team}`);
+            let name = nameInput.value.trim();
+            let number = numInput.value.trim();
 
-        inputs.forEach(input => {
-            let key = input.id.replace("stat_", "");
-            payload[key] = input.value;
-        });
+            if (!name) {
+                alert("Введіть ім'я гравця!");
+                return;
+            }
 
-        fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(() => {
-            Telegram.WebApp.showAlert("Зміни успішно збережено!");
-            loadStats();
-        });
-    }
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "addPlayer", team: team, name: name, number: number })
+            })
+            .then(res => res.json())
+            .then(() => {
+                Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                nameInput.value = "";
+                numInput.value = "";
+                loadData();
+            });
+        }
 
-    Telegram.WebApp.ready();
-    loadStats();
-</script>
+        Telegram.WebApp.ready();
+        loadData();
+    </script>
 </body>
 </html>
