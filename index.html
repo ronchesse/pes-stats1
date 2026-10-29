@@ -27,11 +27,12 @@
             margin: 0 0 8px 0;
             text-align: center;
             font-size: 14px;
-            padding: 4px;
+            padding: 6px;
             border-radius: 4px;
+            font-weight: bold;
         }
-        .natan-title { background: #1f6feb33; color: #58a6ff; }
-        .arsen-title { background: #da363333; color: #f85149; }
+        .natan-title { background: #1f6feb33; color: #58a6ff; border: 1px solid #1f6feb; }
+        .arsen-title { background: #da363333; color: #f85149; border: 1px solid #da3633; }
         
         table {
             width: 100%;
@@ -58,7 +59,7 @@
         .player-name {
             text-align: left;
             padding-left: 4px;
-            font-weight: 500;
+            font-weight: 600;
             color: #e6edf3;
         }
         .add-form {
@@ -104,23 +105,24 @@
                     document.getElementById("loading").style.display = "none";
                     
                     // --- НАТАН ---
-                    let natanHtml = `<div class="card">
-                        <h3 class="natan-title">КОМАНДА НАТАН</h3>
-                        <table>
-                            <tr><th>№</th><th style="text-align:left;">Гравець</th><th>ГОЛ</th><th>ПАС</th><th>Г+П</th><th>МАТЧІ</th></tr>`;
-                    
-                    for (let i = 3; i < rows.length; i++) {
+                    let natanRows = "";
+                    for (let i = 4; i < rows.length; i++) { // починаємо з 5 рядка (індекс 4)
                         let r = rows[i];
-                        // Перевіряємо, чи є в рядку ім'я гравця (у Натана це зазвичай колонка 1 або 2)
-                        let name = r[1] ? r[1] : (r[2] ? r[2] : "");
-                        if (name && name.toString().trim() !== "" && name.toString().toUpperCase() !== "ГРАВЕЦЬ") {
+                        if (!r) continue;
+                        
+                        let name = r[1] !== undefined ? String(r[1]).trim() : "";
+                        if (name !== "" && name !== "ГРАВЕЦЬ") {
                             let num = r[0] !== undefined ? r[0] : '';
-                            let goals = r[2] !== undefined && !isNaN(r[2]) && r[2] !== "" ? r[2] : (r[3] !== undefined && !isNaN(r[3]) ? r[3] : 0);
-                            let passes = r[3] !== undefined && !isNaN(r[3]) && r[3] !== "" ? r[3] : (r[4] !== undefined && !isNaN(r[4]) ? r[4] : 0);
-                            let gp = Number(goals) + Number(passes);
+                            let goals = r[2] !== undefined && r[2] !== "" ? r[2] : 0;
+                            let passes = r[3] !== undefined && r[3] !== "" ? r[3] : 0;
+                            let gp = r[4] !== undefined && r[4] !== "" ? r[4] : (Number(goals) + Number(passes));
                             let matches = r[5] !== undefined && r[5] !== "" ? r[5] : 6;
 
-                            natanHtml += `<tr>
+                            // Номер рядка в таблиці Excel = i + 1
+                            // Колонка C (Голи) = 3
+                            // Колонка D (Паси) = 4
+                            // Колонка F (Матчі) = 6
+                            natanRows += `<tr>
                                 <td>${num}</td>
                                 <td class="player-name">${name}</td>
                                 <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 3, this.value)"></td>
@@ -130,44 +132,58 @@
                             </tr>`;
                         }
                     }
-                    natanHtml += `</table>
+
+                    // --- АРСЕН ---
+                    let arsenRows = "";
+                    for (let i = 4; i < rows.length; i++) { // починаємо з 5 рядка (індекс 4)
+                        let r = rows[i];
+                        if (!r) continue;
+
+                        let name = r[9] !== undefined ? String(r[9]).trim() : "";
+                        if (name !== "" && name !== "ГРАВЕЦЬ") {
+                            let num = r[7] !== undefined ? r[7] : '';
+                            let k = r[8] !== undefined ? r[8] : '';
+                            let goals = r[10] !== undefined && r[10] !== "" ? r[10] : 0;
+                            let passes = r[11] !== undefined && r[11] !== "" ? r[11] : 0;
+                            let gp = r[12] !== undefined && r[12] !== "" ? r[12] : (Number(goals) + Number(passes));
+                            let matches = r[13] !== undefined && r[13] !== "" ? r[13] : 6;
+
+                            // Номер рядка в таблиці Excel = i + 1
+                            // Колонка K (Голи) = 11
+                            // Колонка L (Паси) = 12
+                            // Колонка N (Матчі) = 14
+                            arsenRows += `<tr>
+                                <td>${num}</td>
+                                <td>${k}</td>
+                                <td class="player-name">${name}</td>
+                                <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 11, this.value)"></td>
+                                <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 12, this.value)"></td>
+                                <td><b>${gp}</b></td>
+                                <td><input type="number" value="${matches}" onchange="updateCell(${i+1}, 14, this.value)"></td>
+                            </tr>`;
+                        }
+                    }
+
+                    let html = `
+                    <div class="card">
+                        <h3 class="natan-title">КОМАНДА НАТАН</h3>
+                        <table>
+                            <tr><th>№</th><th style="text-align:left;">Гравець</th><th>ГОЛ</th><th>ПАС</th><th>Г+П</th><th>МАТЧІ</th></tr>
+                            ${natanRows}
+                        </table>
                         <div class="add-form">
                             <input type="number" id="num_natan" placeholder="№" style="width: 35px;">
                             <input type="text" id="name_natan" placeholder="Ім'я гравця" style="flex: 2;">
                             <button class="add-btn" onclick="addPlayer('natan')">+ Додати</button>
                         </div>
-                    </div>`;
+                    </div>
 
-                    // --- АРСЕН ---
-                    let arsenHtml = `<div class="card">
+                    <div class="card">
                         <h3 class="arsen-title">КОМАНДА АРСЕН</h3>
                         <table>
-                            <tr><th>№</th><th>К</th><th style="text-align:left;">Гравець</th><th>ГОЛ</th><th>ПАС</th><th>Г+П</th><th>МАТЧІ</th></tr>`;
-                    
-                    for (let i = 3; i < rows.length; i++) {
-                        let r = rows[i];
-                        // Шукаємо ім'я в правій частині таблиці (Арсен)
-                        let name = r[8] ? r[8] : (r[7] ? r[7] : "");
-                        if (name && name.toString().trim() !== "" && name.toString().toUpperCase() !== "ГРАВЕЦЬ") {
-                            let num = r[6] !== undefined ? r[6] : '';
-                            let k = r[7] !== undefined ? r[7] : '';
-                            let goals = r[9] !== undefined && !isNaN(r[9]) && r[9] !== "" ? r[9] : 0;
-                            let passes = r[10] !== undefined && !isNaN(r[10]) && r[10] !== "" ? r[10] : 0;
-                            let gp = Number(goals) + Number(passes);
-                            let matches = r[12] !== undefined && r[12] !== "" ? r[12] : 6;
-
-                            arsenHtml += `<tr>
-                                <td>${num}</td>
-                                <td>${k}</td>
-                                <td class="player-name">${name}</td>
-                                <td><input type="number" value="${goals}" onchange="updateCell(${i+1}, 10, this.value)"></td>
-                                <td><input type="number" value="${passes}" onchange="updateCell(${i+1}, 11, this.value)"></td>
-                                <td><b>${gp}</b></td>
-                                <td><input type="number" value="${matches}" onchange="updateCell(${i+1}, 13, this.value)"></td>
-                            </tr>`;
-                        }
-                    }
-                    arsenHtml += `</table>
+                            <tr><th>№</th><th>К</th><th style="text-align:left;">Гравець</th><th>ГОЛ</th><th>ПАС</th><th>Г+П</th><th>МАТЧІ</th></tr>
+                            ${arsenRows}
+                        </table>
                         <div class="add-form">
                             <input type="number" id="num_arsen" placeholder="№" style="width: 35px;">
                             <input type="text" id="name_arsen" placeholder="Ім'я гравця" style="flex: 2;">
@@ -175,7 +191,7 @@
                         </div>
                     </div>`;
 
-                    document.getElementById("app").innerHTML = natanHtml + arsenHtml;
+                    document.getElementById("app").innerHTML = html;
                 })
                 .catch(err => {
                     document.getElementById("loading").innerText = "Помилка завантаження даних.";
